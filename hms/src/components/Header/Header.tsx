@@ -1,13 +1,14 @@
-import { ActionIcon } from "@mantine/core";
+import { ActionIcon, Button } from "@mantine/core";
 import {
   IconBellRinging,
   IconLayoutSidebarLeftCollapseFilled,
 } from "@tabler/icons-react";
 import ProfileMenu from "./ProfileMenu";
+import { Link } from "react-router-dom";
 
 const Header = () => {
   return (
-    <div className="w-full h-16 flex items-center justify-between bg-amber-50 px-4 ">
+    <div className="w-full h-16 flex items-center justify-between bg-light shadow-lg px-4 ">
       <ActionIcon variant="transparent" size="md" aria-label="Settings">
         <IconLayoutSidebarLeftCollapseFilled
           style={{ width: "90%", height: "90%" }}
@@ -15,6 +16,9 @@ const Header = () => {
         />
       </ActionIcon>
       <div className="flex gap-5 items-center">
+        <Link to="login">
+          <Button>Login</Button>
+        </Link>
         <ActionIcon variant="transparent" size="md" aria-label="Settings">
           <IconBellRinging
             style={{ width: "90%", height: "90%" }}
