@@ -1,9 +1,17 @@
 import { Button, PasswordInput, TextInput } from "@mantine/core";
 import { IconHeartbeat } from "@tabler/icons-react";
 import { useForm } from "@mantine/form";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
+import { loginUser } from "../Service/UserService";
+import {
+  errorNotification,
+  successNotification,
+} from "../Utility/NotificationUtil";
+import { useState } from "react";
 
 const LoginPage = () => {
+  const navigate = useNavigate();
+  const [loading, setLoading] = useState(false);
   const form = useForm({
     initialValues: {
       email: "",
@@ -16,7 +24,16 @@ const LoginPage = () => {
     },
   });
   const handleSubmit = (values: typeof form.values) => {
-    console.log(values);
+    setLoading(true);
+    loginUser(values)
+      .then((_data) => {
+        successNotification("Logged in Successfully");
+        navigate("/dashboard");
+      })
+      .catch((error) => {
+        errorNotification(error?.response?.data?.errorMessage);
+      })
+      .finally(() => setLoading(false));
   };
   return (
     <div
@@ -49,7 +66,12 @@ const LoginPage = () => {
             placeholder="Password"
             {...form.getInputProps("password")}
           />
-          <Button radius="md" size="md" type="submit" color="pink">
+          <Button
+            loading={loading}
+            radius="md"
+            size="md"
+            type="submit"
+            color="pink">
             Login
           </Button>
           <div className="text-dark text-sm self-center">

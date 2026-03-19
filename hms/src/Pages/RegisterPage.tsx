@@ -6,11 +6,20 @@ import {
 } from "@mantine/core";
 import { IconHeartbeat } from "@tabler/icons-react";
 import { useForm } from "@mantine/form";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
+import { registerUser } from "../Service/UserService";
+import {
+  errorNotification,
+  successNotification,
+} from "../Utility/NotificationUtil";
+import { useState } from "react";
 
 const RegisterPage = () => {
+  const navigate = useNavigate();
+  const [loading, setLoading] = useState(false);
   const form = useForm({
     initialValues: {
+      name: "",
       type: "PATIENT",
       email: "",
       password: "",
@@ -18,14 +27,31 @@ const RegisterPage = () => {
     },
 
     validate: {
+      name: (value) => (!value ? "Name is required" : null),
       email: (value) => (/^\S+@\S+$/.test(value) ? null : "Invalid email"),
-      password: (value) => (!value ? "Password is required" : null),
+      password: (value) =>
+        !value
+          ? "Password is required"
+          : !/^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,15}$/.test(
+                value,
+              )
+            ? "Password must be 8-15 characters long and include uppercase, lowercase, number, and special character"
+            : null,
       confirmPassword: (value, values) =>
         value === values.password ? null : "Passwords don't match",
     },
   });
   const handleSubmit = (values: typeof form.values) => {
-    console.log(values);
+    setLoading(true);
+    registerUser(values)
+      .then((_data) => {
+        successNotification("Registered Successfully.");
+        navigate("/login");
+      })
+      .catch((error) => {
+        errorNotification(error.response.data.errorMessagge);
+      })
+      .finally(() => setLoading(false));
   };
   return (
     <div
@@ -61,6 +87,14 @@ const RegisterPage = () => {
             variant="unstyled"
             size="md"
             radius="md"
+            placeholder="Name"
+            {...form.getInputProps("name")}
+          />
+          <TextInput
+            className="transition duration-300"
+            variant="unstyled"
+            size="md"
+            radius="md"
             placeholder="Email"
             {...form.getInputProps("email")}
           />
@@ -80,7 +114,12 @@ const RegisterPage = () => {
             placeholder="Password"
             {...form.getInputProps("confirmPassword")}
           />
-          <Button radius="md" size="md" type="submit" color="pink">
+          <Button
+            loading={loading}
+            radius="md"
+            size="md"
+            type="submit"
+            color="pink">
             Register
           </Button>
           <div className="text-dark text-sm self-center">
