@@ -8,8 +8,13 @@ import {
   successNotification,
 } from "../Utility/NotificationUtil";
 import { useState } from "react";
+import { useDispatch } from "react-redux";
+import { setJwt } from "../Slices/JwtSlice";
+import { jwtDecode } from "jwt-decode";
+import { setUser } from "../Slices/UserSlice";
 
 const LoginPage = () => {
+  const dispatch = useDispatch();
   const navigate = useNavigate();
   const [loading, setLoading] = useState(false);
   const form = useForm({
@@ -28,6 +33,8 @@ const LoginPage = () => {
     loginUser(values)
       .then((_data) => {
         successNotification("Logged in Successfully");
+        dispatch(setJwt(_data));
+        dispatch(setUser(jwtDecode(_data)));
         navigate("/dashboard");
       })
       .catch((error) => {

@@ -20,7 +20,7 @@ const RegisterPage = () => {
   const form = useForm({
     initialValues: {
       name: "",
-      type: "PATIENT",
+      role: "PATIENT",
       email: "",
       password: "",
       confirmPassword: "",
