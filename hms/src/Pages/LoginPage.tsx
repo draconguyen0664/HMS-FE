@@ -35,7 +35,6 @@ const LoginPage = () => {
         successNotification("Logged in Successfully");
         dispatch(setJwt(_data));
         dispatch(setUser(jwtDecode(_data)));
-        navigate("/dashboard");
       })
       .catch((error) => {
         errorNotification(error?.response?.data?.errorMessage);

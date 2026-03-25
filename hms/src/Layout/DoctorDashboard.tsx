@@ -2,7 +2,7 @@ import { Outlet } from "react-router-dom";
 import Header from "../components/Header/Header";
 import Sidebar from "../components/Doctor/Sidebar/Sidebar";
 
-const AdminDashboard = () => {
+const DoctorDashboard = () => {
   return (
     <div className="flex min-h-screen w-full">
       <Sidebar />
@@ -13,4 +13,4 @@ const AdminDashboard = () => {
     </div>
   );
 };
-export default AdminDashboard;
+export default DoctorDashboard;

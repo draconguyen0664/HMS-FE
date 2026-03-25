@@ -4,7 +4,7 @@ import {
   IconHeartbeat,
   IconLayoutGrid,
   IconMoodHeart,
-  IconStethoscope,
+  IconUser,
   IconVaccine,
 } from "@tabler/icons-react";
 import { useSelector } from "react-redux";
@@ -13,17 +13,25 @@ import { NavLink } from "react-router-dom";
 const links = [
   {
     name: "Dashboard",
-    url: "/dashboard",
+    url: "/doctor/dashboard",
     icon: <IconLayoutGrid stroke={1.5} />,
   },
-  { name: "Doctors", url: "/doctors", icon: <IconStethoscope stroke={1.5} /> },
-  { name: "Patients", url: "/patients", icon: <IconMoodHeart stroke={1.5} /> },
+  { name: "Profile", url: "/doctor/profile", icon: <IconUser stroke={1.5} /> },
+  {
+    name: "Patients",
+    url: "/doctor/patients",
+    icon: <IconMoodHeart stroke={1.5} />,
+  },
   {
     name: "Appointments",
-    url: "/appointments",
+    url: "/doctor/appointments",
     icon: <IconCalendarCheck stroke={1.5} />,
   },
-  { name: "Pharmacy", url: "/pharmacy", icon: <IconVaccine stroke={1.5} /> },
+  {
+    name: "Pharmacy",
+    url: "/doctor/pharmacy",
+    icon: <IconVaccine stroke={1.5} />,
+  },
 ];
 
 const Sidebar = () => {
@@ -39,7 +47,7 @@ const Sidebar = () => {
         <div className="flex flex-col mt-20 gap-5">
           <div className="flex flex-col gap-1 items-center">
             <div className="p-1 bg-white rounded-full shadow-lg">
-              <Avatar src="avatar.png" size="xl" alt="avatar" />
+              <Avatar src="/avatar.png" size="xl" alt="avatar" />
             </div>
             <span className="text-light font-medium">{user.name}</span>
             <Text c="dimmed" className="text-light" size="xs">

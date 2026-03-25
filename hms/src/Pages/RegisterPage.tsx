@@ -69,7 +69,7 @@ const RegisterPage = () => {
             Register
           </div>
           <SegmentedControl
-            {...form.getInputProps("type")}
+            {...form.getInputProps("role")}
             fullWidth
             size="md"
             radius="lg"
@@ -78,7 +78,7 @@ const RegisterPage = () => {
             className="[&_*]:text-white border border-white"
             data={[
               { label: "Patient", value: "PATIENT" },
-              { label: "Doctor", value: "Doctor" },
+              { label: "Doctor", value: "DOCTOR" },
               { label: "Admin", value: "ADMIN" },
             ]}
           />
