@@ -17,6 +17,7 @@ import { useState } from "react";
 const RegisterPage = () => {
   const navigate = useNavigate();
   const [loading, setLoading] = useState(false);
+
   const form = useForm({
     initialValues: {
       name: "",
@@ -27,8 +28,10 @@ const RegisterPage = () => {
     },
 
     validate: {
-      name: (value) => (!value ? "Name is required" : null),
-      email: (value) => (/^\S+@\S+$/.test(value) ? null : "Invalid email"),
+      name: (value) => (!value.trim() ? "Name is required" : null),
+
+      email: (value) => (/^\S+@\S+\.\S+$/.test(value) ? null : "Invalid email"),
+
       password: (value) =>
         !value
           ? "Password is required"
@@ -37,22 +40,50 @@ const RegisterPage = () => {
               )
             ? "Password must be 8-15 characters long and include uppercase, lowercase, number, and special character"
             : null,
+
       confirmPassword: (value, values) =>
-        value === values.password ? null : "Passwords don't match",
+        !value
+          ? "Confirm password is required"
+          : value !== values.password
+            ? "Passwords don't match"
+            : null,
     },
   });
-  const handleSubmit = (values: typeof form.values) => {
-    setLoading(true);
-    registerUser(values)
-      .then((_data) => {
-        successNotification("Registered Successfully.");
-        navigate("/login");
-      })
-      .catch((error) => {
-        errorNotification(error.response.data.errorMessagge);
-      })
-      .finally(() => setLoading(false));
+
+  const handleSubmit = async (values: typeof form.values) => {
+    if (values.password !== values.confirmPassword) {
+      form.setFieldError("confirmPassword", "Passwords don't match");
+      return;
+    }
+
+    const payload = {
+      name: values.name.trim(),
+      role: values.role,
+      email: values.email.trim(),
+      password: values.password,
+    };
+
+    try {
+      setLoading(true);
+
+      await registerUser(payload);
+
+      successNotification("Registered Successfully.");
+      navigate("/login");
+    } catch (error: any) {
+      const message =
+        error?.response?.data?.errorMessage ||
+        error?.response?.data?.message ||
+        error?.response?.data?.errorMessagge ||
+        "Register failed";
+
+      errorNotification(message);
+      console.log("register submit error:", error?.response?.data || error);
+    } finally {
+      setLoading(false);
+    }
   };
+
   return (
     <div
       style={{ background: 'url("/bg.jpg")' }}
@@ -61,6 +92,7 @@ const RegisterPage = () => {
         <IconHeartbeat size={40} stroke={2.5} />
         <span className="font-semibold text-4xl">Pluse</span>
       </div>
+
       <div className="w-[450px] backdrop-blur-md py-8 p-10 rounded-lg">
         <form
           onSubmit={form.onSubmit(handleSubmit)}
@@ -68,6 +100,7 @@ const RegisterPage = () => {
           <div className="self-center font-medium text-dark text-2xl">
             Register
           </div>
+
           <SegmentedControl
             {...form.getInputProps("role")}
             fullWidth
@@ -82,6 +115,7 @@ const RegisterPage = () => {
               { label: "Admin", value: "ADMIN" },
             ]}
           />
+
           <TextInput
             className="transition duration-300"
             variant="unstyled"
@@ -90,6 +124,7 @@ const RegisterPage = () => {
             placeholder="Name"
             {...form.getInputProps("name")}
           />
+
           <TextInput
             className="transition duration-300"
             variant="unstyled"
@@ -98,6 +133,7 @@ const RegisterPage = () => {
             placeholder="Email"
             {...form.getInputProps("email")}
           />
+
           <PasswordInput
             className="transition duration-300"
             variant="unstyled"
@@ -106,14 +142,16 @@ const RegisterPage = () => {
             placeholder="Password"
             {...form.getInputProps("password")}
           />
+
           <PasswordInput
             className="transition duration-300"
             variant="unstyled"
             size="md"
             radius="md"
-            placeholder="Password"
+            placeholder="Confirm Password"
             {...form.getInputProps("confirmPassword")}
           />
+
           <Button
             loading={loading}
             radius="md"
@@ -122,8 +160,9 @@ const RegisterPage = () => {
             color="pink">
             Register
           </Button>
+
           <div className="text-dark text-sm self-center">
-            Have an account?
+            Have an account?{" "}
             <Link to="/login" className="hover:underline">
               Login
             </Link>
