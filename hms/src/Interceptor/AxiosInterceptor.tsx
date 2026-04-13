@@ -9,13 +9,26 @@ const axiosInstance = axios.create({
 
 axiosInstance.interceptors.request.use(
   (config) => {
-    const token = localStorage.getItem("token");
+    const rawToken =
+      localStorage.getItem("token") || localStorage.getItem("accessToken");
+
+    const token = rawToken?.startsWith("Bearer ")
+      ? rawToken.replace("Bearer ", "")
+      : rawToken;
+
     const url = config.url || "";
 
-    const isPublicApi =
-      url.includes("/user/login") || url.includes("/user/register");
+    const publicApis = [
+      "/user/login",
+      "/user/register",
+      "/profile/doctor/dropdowns",
+    ];
 
-    if (token && !isPublicApi) {
+    const isPublicApi = publicApis.some((path) => url.includes(path));
+
+    config.headers = config.headers ?? {};
+
+    if (!isPublicApi && token) {
       config.headers.Authorization = `Bearer ${token}`;
     }
 
@@ -29,6 +42,10 @@ axiosInstance.interceptors.response.use(
   (error) => {
     if (error.response) {
       console.error("API Error:", error.response.status, error.response.data);
+
+      if (error.response.status === 401) {
+        console.warn("Unauthorized request. Check token or backend security.");
+      }
     } else {
       console.error("Network/Error:", error.message);
     }

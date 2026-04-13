@@ -37,4 +37,26 @@ const doctorDepartments = [
   "Pathology",
   "Emergency Medicine",
 ];
-export { bloodGroups, doctorSpecializations, doctorDepartments };
+
+const appointmentReasons = [
+  "General Consultation",
+  "Follow-up Visit",
+  "Prescription Refill",
+  "Lab Results Review",
+  "Chronic Condition Management",
+  "Mental Health Counseling",
+  "Pre-Surgery Consultation",
+  "Post-Surgery Follow-up",
+  "Vaccination",
+  "Routine Checkup",
+  "Diagnostic Test",
+  "Second Opinion",
+  "Physical Examination",
+];
+
+export {
+  bloodGroups,
+  doctorSpecializations,
+  doctorDepartments,
+  appointmentReasons,
+};

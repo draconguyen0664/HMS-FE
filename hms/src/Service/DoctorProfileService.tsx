@@ -1,42 +1,22 @@
-import axios from "axios";
+import axiosInstance from "../Interceptor/AxiosInterceptor";
 
 const getDoctor = async (id: string | number) => {
   if (id === undefined || id === null || id === "") {
     throw new Error("Doctor id is required");
   }
 
-  const token = localStorage.getItem("token");
+  const response = await axiosInstance.get(`/profile/doctor/get/${id}`);
+  return response.data;
+};
 
-  const response = await axios.get(
-    `http://localhost:9100/profile/doctor/get/${id}`,
-    {
-      headers: token
-        ? {
-            Authorization: `Bearer ${token}`,
-          }
-        : {},
-    },
-  );
-
+const getDoctorDropdown = async () => {
+  const response = await axiosInstance.get("/profile/doctor/dropdowns");
   return response.data;
 };
 
 const updateDoctor = async (doctor: any) => {
-  const token = localStorage.getItem("token");
-
-  const response = await axios.put(
-    "http://localhost:9100/profile/doctor/update",
-    doctor,
-    {
-      headers: token
-        ? {
-            Authorization: `Bearer ${token}`,
-          }
-        : {},
-    },
-  );
-
+  const response = await axiosInstance.put("/profile/doctor/update", doctor);
   return response.data;
 };
 
-export { getDoctor, updateDoctor };
+export { getDoctor, getDoctorDropdown, updateDoctor };
