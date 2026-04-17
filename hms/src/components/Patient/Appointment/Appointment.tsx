@@ -12,12 +12,20 @@ import { Calendar } from "primereact/calendar";
 import { MultiSelect } from "primereact/multiselect";
 import { Slider } from "primereact/slider";
 import { Tag } from "primereact/tag";
-import { Button, Modal, Select, TextInput, Textarea } from "@mantine/core";
+import {
+  Button,
+  Modal,
+  Select,
+  TextInput,
+  Textarea,
+  LoadingOverlay,
+} from "@mantine/core";
 import { DateTimePicker } from "@mantine/dates";
 import { useForm } from "@mantine/form";
 import { IconPlus, IconSearch } from "@tabler/icons-react";
 import { useDisclosure } from "@mantine/hooks";
 import { getDoctorDropdown } from "../../../Service/DoctorProfileService";
+import { scheduleAppointment } from "../../../Service/AppointmentService";
 
 interface Country {
   name: string;
@@ -56,7 +64,7 @@ interface RootState {
 interface AppointmentFormValues {
   doctorId: string;
   patientId: string;
-  appointmentTime: Date | null;
+  appointmentTime: Date | string | null;
   reason: string;
   notes: string;
 }
@@ -78,6 +86,14 @@ const appointmentReasons = [
   { value: "test_results", label: "Discuss Test Results" },
 ];
 
+const successNotification = (message: string) => {
+  console.log(message);
+};
+
+const errorNotification = (message: string) => {
+  console.error(message);
+};
+
 const Appointment = () => {
   const user = useSelector((state: RootState) => state.user);
 
@@ -87,9 +103,9 @@ const Appointment = () => {
   const [globalFilterValue, setGlobalFilterValue] = useState("");
   const [doctorOptions, setDoctorOptions] = useState<DoctorOption[]>([]);
   const [loadingDoctors, setLoadingDoctors] = useState(false);
+  const [loading, setLoading] = useState<boolean>(false);
 
   const form = useForm<AppointmentFormValues>({
-    mode: "uncontrolled",
     initialValues: {
       doctorId: "",
       patientId: String(user?.profileId ?? ""),
@@ -98,12 +114,13 @@ const Appointment = () => {
       notes: "",
     },
     validate: {
-      doctorId: (value) => (!value ? "Doctor is required" : null),
+      doctorId: (value) => (!value ? "Doctor is required" : undefined),
       appointmentTime: (value) =>
-        !value ? "Appointment time is required" : null,
-      reason: (value) => (!value ? "Reason for appointment is required" : null),
+        !value ? "Appointment time is required" : undefined,
+      reason: (value) =>
+        !value ? "Reason for appointment is required" : undefined,
       notes: (value) =>
-        !value.trim() ? "Additional notes are required" : null,
+        !value.trim() ? "Additional notes are required" : undefined,
     },
   });
 
@@ -334,11 +351,6 @@ const Appointment = () => {
     close();
   };
 
-  const handleSubmit = (values: AppointmentFormValues) => {
-    console.log("Submit appointment:", values);
-    handleCloseModal();
-  };
-
   const renderHeader = () => {
     return (
       <div className="flex items-center justify-between gap-4">
@@ -355,6 +367,55 @@ const Appointment = () => {
         />
       </div>
     );
+  };
+
+  const header = renderHeader();
+
+  const handleSubmit = (values: AppointmentFormValues) => {
+    const rawAppointmentTime = values.appointmentTime;
+
+    const parsedAppointmentTime =
+      rawAppointmentTime instanceof Date
+        ? rawAppointmentTime
+        : rawAppointmentTime
+          ? new Date(rawAppointmentTime)
+          : null;
+
+    const payload = {
+      doctorId: Number(values.doctorId),
+      patientId: Number(values.patientId),
+      appointmentTime:
+        parsedAppointmentTime && !Number.isNaN(parsedAppointmentTime.getTime())
+          ? new Date(
+              parsedAppointmentTime.getTime() -
+                parsedAppointmentTime.getTimezoneOffset() * 60000,
+            )
+              .toISOString()
+              .slice(0, 19)
+          : null,
+      reason: values.reason,
+      notes: values.notes,
+    };
+
+    console.log("Appointment scheduled with values:", payload);
+    setLoading(true);
+
+    scheduleAppointment(payload)
+      .then((data: any) => {
+        close();
+        form.reset();
+        successNotification("Appointment scheduled successfully");
+        console.log("Appointment scheduled successfully:", data);
+      })
+      .catch((error: any) => {
+        errorNotification(
+          error?.response?.data?.errorMessage ||
+            "Failed to schedule appointment",
+        );
+      })
+      .finally(() => {
+        setLoading(false);
+      });
   };
 
   const countryBodyTemplate = (rowData: Customer) => {
@@ -531,8 +592,6 @@ const Appointment = () => {
     );
   };
 
-  const header = renderHeader();
-
   return (
     <div className="card">
       <DataTable
@@ -647,64 +706,63 @@ const Appointment = () => {
 
       <Modal
         opened={opened}
-        onClose={handleCloseModal}
         size="lg"
+        onClose={handleCloseModal}
         title={
           <div className="text-xl font-semibold text-primary-500">
             Schedule Appointment
           </div>
         }
         centered>
-        <form
-          onSubmit={form.onSubmit(handleSubmit)}
-          className="grid grid-cols-1 gap-5">
-          <Select
-            key={form.key("doctorId")}
-            withAsterisk
-            data={doctorOptions}
-            label="Doctor"
-            placeholder="Select doctor"
-            searchable
-            clearable
-            disabled={loadingDoctors}
-            nothingFoundMessage="No doctors found"
-            {...form.getInputProps("doctorId")}
+        <div className="relative p-5">
+          <LoadingOverlay
+            visible={loading}
+            zIndex={1000}
+            overlayProps={{ radius: "sm", blur: 2 }}
           />
 
-          <DateTimePicker
-            key={form.key("appointmentTime")}
-            withAsterisk
-            label="Appointment Time"
-            placeholder="Pick date and time"
-            {...form.getInputProps("appointmentTime")}
-          />
+          <form
+            onSubmit={form.onSubmit(handleSubmit)}
+            className="grid grid-cols-1 gap-5">
+            <Select
+              {...form.getInputProps("doctorId")}
+              withAsterisk
+              data={doctorOptions}
+              label="Doctor"
+              placeholder="Select Doctor"
+              searchable
+              clearable
+              nothingFoundMessage="No doctors found"
+            />
 
-          <Select
-            key={form.key("reason")}
-            withAsterisk
-            data={appointmentReasons}
-            label="Reason for Appointment"
-            placeholder="Enter reason for appointment"
-            {...form.getInputProps("reason")}
-          />
+            <DateTimePicker
+              minDate={new Date()}
+              {...form.getInputProps("appointmentTime")}
+              withAsterisk
+              label="Appointment Time"
+              placeholder="Pick date and time"
+            />
 
-          <Textarea
-            key={form.key("notes")}
-            label="Additional Notes"
-            placeholder="Enter any additional notes"
-            minRows={3}
-            {...form.getInputProps("notes")}
-          />
+            <Select
+              {...form.getInputProps("reason")}
+              data={appointmentReasons}
+              withAsterisk
+              label="Reason for Appointment"
+              placeholder="Enter reason for appointment"
+            />
 
-          <div className="flex justify-end gap-2">
-            <Button type="button" variant="default" onClick={handleCloseModal}>
-              Cancel
-            </Button>
-            <Button type="submit" variant="filled">
+            <Textarea
+              {...form.getInputProps("notes")}
+              label="Additional Notes"
+              placeholder="Enter any additional notes"
+              minRows={3}
+            />
+
+            <Button type="submit" variant="filled" fullWidth>
               Submit
             </Button>
-          </div>
-        </form>
+          </form>
+        </div>
       </Modal>
     </div>
   );

@@ -22,6 +22,7 @@ axiosInstance.interceptors.request.use(
       "/user/login",
       "/user/register",
       "/profile/doctor/dropdowns",
+      "/appointment/schedule",
     ];
 
     const isPublicApi = publicApis.some((path) => url.includes(path));
@@ -42,10 +43,6 @@ axiosInstance.interceptors.response.use(
   (error) => {
     if (error.response) {
       console.error("API Error:", error.response.status, error.response.data);
-
-      if (error.response.status === 401) {
-        console.warn("Unauthorized request. Check token or backend security.");
-      }
     } else {
       console.error("Network/Error:", error.message);
     }
